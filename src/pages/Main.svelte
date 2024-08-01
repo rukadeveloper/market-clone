@@ -1,14 +1,65 @@
 <script>
   import { link } from "svelte-spa-router";
+
+  import Footer from "./Footer.svelte";
+
+  import { getDatabase, ref, onValue } from "firebase/database";
+  import { onMount } from "svelte";
+
+  const calcTime = (timestamp) => {
+    const curTime = new Date().getTime() - 9 * 60 * 60 * 1000;
+    const durtime = new Date(curTime - timestamp);
+    const hour = durtime.getHours();
+    const minute = durtime.getMinutes();
+    const second = durtime.getSeconds();
+
+    if (hour > 0) return `${hour}시간 전`;
+    else if (minute > 0) return `${minute}분 전`;
+    else if (second >= 0) return `${second}초 전`;
+    else return "방금 전";
+  };
+
+  $: items = [];
+
+  const db = getDatabase();
+  onMount(() => {
+    const itemsRef = ref(db, "items/");
+    onValue(itemsRef, (snapshot) => {
+      const data = snapshot.val();
+      items = Object.values(data);
+    });
+  });
 </script>
 
 <main>
   <div class="media">
     <span>화면을 줄여주세요.</span>
   </div>
-  <ul class="write-lists"></ul>
+  <ul class="write-lists">
+    {#each items as item}
+      <li class="lists-items">
+        <div class="lists-items__img">
+          <img src={item.imgurl} alt={item.title} />
+        </div>
+        <div class="lists-items__desc">
+          <div class="lists-items__desc-title">{item.title}</div>
+          <div class="lists-items__desc-meta">
+            <span>{item.place}</span>
+            <span>{calcTime(item.timestamp)}</span>
+          </div>
+          <div class="lists-items__desc-price">
+            {item.price}
+          </div>
+          <div class="lists-items__desc-descs">
+            {item.description}
+          </div>
+        </div>
+      </li>
+    {/each}
+  </ul>
   <a use:link href="/write" class="write_btn">글쓰기</a>
 </main>
+<Footer location="home" />
 
 <style>
   main {
