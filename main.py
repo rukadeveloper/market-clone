@@ -38,4 +38,12 @@ async def get_image(item_id):
                               """).fetchone()[0]
     return Response(content=bytes.fromhex(image_bytes))
 
+@app.post('/signup')
+def sign_up(id:Annotated[str,Form()],newPassword:Annotated[str,Form()],em:Annotated[str,Form()],nm:Annotated[str,Form()]):
+    cur.execute(f"""
+                INSERT INTO USERS(id,name,em,password) VALUES ('{id}','{nm}','{em}','{newPassword}')
+                """)
+    con.commit()
+    return '200'
+
 app.mount('/',StaticFiles(directory="front", html=True), name="front")
